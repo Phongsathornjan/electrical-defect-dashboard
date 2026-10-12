@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Electrical Site | Defect Ticket Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+:root{--bg:#f3f6fb;--card:#fff;--ink:#182230;--muted:#64748b;--navy:#12213a;--blue:#2864dc;--teal:#0f9f9a;--line:#e6ebf2;--red:#e34b59;--amber:#e6a23c;--green:#1d9b68}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Inter,"Noto Sans Thai",Tahoma,Arial,sans-serif;color:var(--ink)}
+header{background:linear-gradient(120deg,#10213c,#174a75);color:#fff;padding:24px clamp(16px,3vw,38px) 26px}
+.top{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;flex-wrap:wrap}.eyebrow{font-size:12px;letter-spacing:1.5px;color:#a8c8f7;font-weight:700}.title{font-size:clamp(22px,3vw,32px);font-weight:800;margin:6px 0}.subtitle{color:#d3dfef;font-size:14px}
+.header-right{display:flex;gap:9px;align-items:center;flex-wrap:wrap}.pill{border:1px solid #ffffff40;border-radius:999px;padding:8px 12px;font-size:12px;color:#e7efff}
+main{max-width:1500px;margin:auto;padding:22px clamp(12px,2.5vw,30px) 36px}
+.filters{display:flex;gap:12px;align-items:end;flex-wrap:wrap;background:var(--card);padding:15px;border-radius:14px;border:1px solid var(--line);box-shadow:0 4px 16px #1c31500a;margin-top:-42px;position:relative}
+.field{display:flex;flex-direction:column;gap:6px;min-width:150px;flex:1}.field label{font-size:12px;color:var(--muted);font-weight:700}
+select,input{border:1px solid #d8e0eb;background:#fff;border-radius:9px;padding:10px 11px;color:var(--ink);font:inherit;font-size:13px;min-width:0}
+button{border:0;border-radius:9px;background:var(--blue);color:#fff;padding:11px 16px;font-weight:700;cursor:pointer}button.secondary{background:#eef3ff;color:#2853a6;border:1px solid #dbe5ff}
+.note{font-size:12px;color:var(--muted);margin:12px 2px 18px}.note strong{color:#3a587e}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:16px}
+.kpi,.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:0 5px 18px #243b5307}
+.kpi{padding:17px 18px;position:relative;overflow:hidden}.kpi:after{content:"";position:absolute;right:-18px;top:-18px;width:72px;height:72px;border-radius:50%;background:var(--tint,#eaf1ff)}
+.kpi-label{font-size:12px;color:var(--muted);font-weight:700}.kpi-value{font-size:30px;font-weight:850;letter-spacing:-.8px;margin:8px 0 3px}.kpi-foot{font-size:11px;color:var(--muted)}.kpi-icon{position:absolute;right:16px;top:14px;z-index:1;font-size:20px}
+.grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:15px}.panel{padding:17px;min-width:0}.span-8{grid-column:span 8}.span-7{grid-column:span 7}.span-6{grid-column:span 6}.span-5{grid-column:span 5}.span-4{grid-column:span 4}.span-12{grid-column:span 12}
+.panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}.panel h2{font-size:15px;margin:0 0 4px}.panel p{font-size:11px;color:var(--muted);margin:0}.chart-wrap{height:270px;position:relative}.chart-wrap.short{height:230px}.legend-note{font-size:11px;color:var(--muted)}
+.table-tools{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:12px 0}.table-wrap{overflow:auto;max-height:380px}table{border-collapse:collapse;width:100%;font-size:12px;white-space:nowrap}th{text-align:left;color:#627087;background:#f7f9fc;position:sticky;top:0;z-index:1}td,th{padding:11px 12px;border-bottom:1px solid var(--line)}tbody tr:hover{background:#f8fbff}.status,.priority{display:inline-block;border-radius:999px;padding:4px 8px;font-size:10px;font-weight:800}.s-Open{background:#fff0f0;color:#c63845}.s-In-Progress{background:#fff4df;color:#98630a}.s-Resolved{background:#e8f3ff;color:#245ab5}.s-Closed{background:#e5f7ef;color:#18764f}.p-Critical{background:#ffe2e4;color:#b91c2c}.p-High{background:#fff0e0;color:#a95000}.p-Medium{background:#e8f1ff;color:#245ab5}.p-Low{background:#edf1f6;color:#566579}
+.footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;color:var(--muted);font-size:11px;padding:18px 2px 0}
+@media(max-width:950px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.span-8,.span-7,.span-6,.span-5,.span-4{grid-column:span 12}.chart-wrap{height:250px}}
+@media(max-width:520px){.kpis{gap:8px}.kpi{padding:13px}.kpi-value{font-size:25px}.filters{margin-top:-24px}.chart-wrap{height:220px}}
+
+/* Dashboard polish */
+:root{--bg:#f4f7fc;--card:#ffffff;--ink:#17243a;--muted:#718096;--navy:#101f38;--blue:#3867e8;--teal:#0da6a0;--line:#e5ebf4}
+body{background:radial-gradient(circle at 8% 0%,#e8efff 0,transparent 28%),var(--bg);font-family:Inter,"Noto Sans Thai",Tahoma,Arial,sans-serif;letter-spacing:.05px}
+header{background:linear-gradient(125deg,#101b32 0%,#173f6b 58%,#176c80 100%);padding-top:30px;padding-bottom:62px;position:relative;overflow:hidden}
+header:after{content:"";position:absolute;width:340px;height:340px;border:1px solid #ffffff16;border-radius:50%;right:-80px;top:-170px;box-shadow:0 0 0 35px #ffffff08,0 0 0 70px #ffffff05;pointer-events:none}
+.eyebrow{display:inline-flex;align-items:center;gap:8px}.eyebrow:before{content:"";width:7px;height:7px;background:#59e0cf;border-radius:50%;box-shadow:0 0 0 4px #59e0cf20}
+.title{letter-spacing:-.8px}.subtitle{max-width:720px;line-height:1.7}.pill{backdrop-filter:blur(8px);background:#ffffff0d}
+.filters{border-radius:16px;padding:17px;box-shadow:0 12px 34px #233b5a12;border-color:#e7edf6;gap:13px}
+select,input{transition:border-color .15s,box-shadow .15s}select:focus,input:focus{outline:none;border-color:#7d9cf5;box-shadow:0 0 0 3px #3867e81c}
+button{transition:transform .15s,box-shadow .15s,background .15s}button:hover{transform:translateY(-1px);box-shadow:0 5px 13px #2449a52b}button:active{transform:translateY(0)}
+.kpi,.panel{border-color:#e8edf5;box-shadow:0 8px 24px #22375408;transition:transform .18s,box-shadow .18s}.kpi:hover,.panel:hover{box-shadow:0 12px 28px #22375410}.kpi{border-radius:16px;padding:19px}.kpi:after{width:92px;height:92px;right:-28px;top:-28px;opacity:.8}.kpi-icon{width:37px;height:37px;display:grid;place-items:center;border-radius:12px;background:#ffffffb8;box-shadow:0 4px 12px #15243b0a}.kpi-value{font-size:32px;color:#162943}.panel{border-radius:16px;padding:19px}.panel h2{font-size:15px;letter-spacing:-.15px}.panel-head{margin-bottom:17px}.panel-head h2:before{content:"";display:inline-block;width:4px;height:15px;border-radius:4px;background:#3867e8;margin-right:9px;vertical-align:-2px}
+.status,.priority{padding:5px 9px;letter-spacing:.1px}.table-wrap{border:1px solid var(--line);border-radius:11px}table{font-size:12px}th{background:#f5f8fd;color:#62718a;text-transform:none}td,th{padding:12px 13px}tbody tr:nth-child(even){background:#fbfcfe}tbody tr:hover{background:#f0f5ff}.action-btn{display:inline-flex;align-items:center;gap:6px;background:#e6f7ee;color:#13784b;border:1px solid #c8eed9;padding:7px 10px;border-radius:8px;font-size:11px;white-space:nowrap;box-shadow:none}.action-btn:hover{background:#d4f3e2;box-shadow:0 3px 9px #15945b1c}.action-btn:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}.action-done{color:#748096;background:#f2f5f9;border-color:#e2e8f0;cursor:default}.toast{position:fixed;right:20px;bottom:20px;z-index:99;max-width:min(420px,calc(100vw - 40px));padding:13px 16px;background:#13243d;color:#fff;border:1px solid #ffffff1c;border-radius:12px;box-shadow:0 12px 35px #12213c35;font-size:13px;line-height:1.5;display:none}.toast.show{display:block;animation:toastIn .2s ease-out}@keyframes toastIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+<header><div class="top"><div><div class="eyebrow">OPERATIONS INTELLIGENCE • ELECTRICAL</div><div class="title">Defect Ticket Dashboard</div><div class="subtitle">ภาพรวม Ticket Defect ของ Site งานไฟฟ้า | ข้อมูลออนไลน์จาก Google Sheets</div></div><div class="header-right"><span class="pill" id="periodPill">ม.ค. – ต.ค. 2026</span><span class="pill" id="sourcePill">แหล่งข้อมูล: Google Sheets</span></div></div></header>
+<main>
+<section class="filters">
+ <div class="field"><label>Site</label><select id="siteFilter"><option value="">ทุก Site</option></select></div>
+ <div class="field"><label>Priority</label><select id="priorityFilter"><option value="">ทุกระดับ</option><option>Critical</option><option>High</option><option>Medium</option><option>Low</option></select></div>
+ <div class="field"><label>Status</label><select id="statusFilter"><option value="">ทุกสถานะ</option><option>Open</option><option>In Progress</option><option>Resolved</option><option>Closed</option></select></div>
+ <div class="field"><label>วันที่เริ่มต้น</label><input id="dateFrom" type="date" value="2026-01-01"></div>
+ <div class="field"><label>วันที่สิ้นสุด</label><input id="dateTo" type="date" value="2026-10-12"></div>
+ <button id="applyBtn">ใช้ตัวกรอง</button><button class="secondary" id="resetBtn">รีเซ็ต</button>
+</section>
+<div class="note">ข้อมูลเชื่อมต่อจาก Google Sheets ผ่าน Apps Script การปิด Ticket จะส่งคำสั่งไปอัปเดตชีตอัตโนมัติ</div>
+<section class="kpis">
+ <div class="kpi" style="--tint:#e7efff"><span class="kpi-icon">🎫</span><div class="kpi-label">Ticket ทั้งหมด</div><div class="kpi-value" id="kTotal">—</div><div class="kpi-foot" id="kTotalFoot">ตามตัวกรองที่เลือก</div></div>
+ <div class="kpi" style="--tint:#ffe9e9"><span class="kpi-icon">🚨</span><div class="kpi-label">Open / In Progress</div><div class="kpi-value" id="kOpen">—</div><div class="kpi-foot" id="kOpenFoot">งานที่ยังไม่ปิด</div></div>
+ <div class="kpi" style="--tint:#e1f7ed"><span class="kpi-icon">✅</span><div class="kpi-label">Resolved / Closed</div><div class="kpi-value" id="kClosed">—</div><div class="kpi-foot" id="kClosedFoot">อัตราปิดงาน —</div></div>
+ <div class="kpi" style="--tint:#fff0d8"><span class="kpi-icon">⏱️</span><div class="kpi-label">Avg. Resolution Time</div><div class="kpi-value" id="kMttr">—</div><div class="kpi-foot">วัน (เฉพาะ Ticket ที่ปิดแล้ว)</div></div>
+</section>
+<section class="grid">
+ <article class="panel span-8"><div class="panel-head"><div><h2>Ticket Trend รายเดือน</h2><p>จำนวน Ticket ที่สร้างใหม่ เทียบกับ Ticket ที่ปิดงาน</p></div><span class="legend-note">Tickets / เดือน</span></div><div class="chart-wrap"><canvas id="trendChart"></canvas></div></article>
+ <article class="panel span-4"><div class="panel-head"><div><h2>สัดส่วนตามสถานะ</h2><p>สถานะปัจจุบันของ Ticket</p></div></div><div class="chart-wrap"><canvas id="statusChart"></canvas></div></article>
+ <article class="panel span-6"><div class="panel-head"><div><h2>Ticket ตาม Priority</h2><p>ช่วยจัดลำดับความเร่งด่วน</p></div></div><div class="chart-wrap short"><canvas id="priorityChart"></canvas></div></article>
+ <article class="panel span-6"><div class="panel-head"><div><h2>Top Defect Category</h2><p>หมวด Defect ที่พบมากที่สุด</p></div></div><div class="chart-wrap short"><canvas id="categoryChart"></canvas></div></article>
+ <article class="panel span-7"><div class="panel-head"><div><h2>เปรียบเทียบ Ticket ระหว่าง Site</h2><p>Ticket ทั้งหมด เทียบกับ Closed, In Progress และ Open แยกตาม Site</p></div></div><div class="chart-wrap"><canvas id="siteChart"></canvas></div></article>
+ <article class="panel span-5"><div class="panel-head"><div><h2>Resolution Time ตาม Priority</h2><p>ระยะเวลาปิดงานเฉลี่ย (วัน)</p></div></div><div class="chart-wrap"><canvas id="resolutionChart"></canvas></div></article>
+ <article class="panel span-12"><div class="panel-head"><div><h2>รายการ Ticket Defect</h2><p>ค้นหาและตรวจสอบรายละเอียด Ticket ตามตัวกรอง</p></div></div>
+ <div class="table-tools"><input id="searchInput" placeholder="ค้นหา Ticket, Site, defect..." style="width:min(100%,340px)"><span id="tableCount" class="legend-note"></span><button class="secondary" id="exportBtn">Export CSV</button></div>
+ <div class="table-wrap"><table><thead><tr><th>Ticket ID</th><th>วันที่สร้าง</th><th>Site</th><th>Category</th><th>รายละเอียด</th><th>Priority</th><th>Status</th><th>Owner</th><th>Resolution (วัน)</th><th>Action</th></tr></thead><tbody id="ticketRows"></tbody></table></div></article>
+</section>
+<div id="toast" class="toast" role="status" aria-live="polite"></div><div class="footer"><span>Electrical Defect Dashboard • Live Google Sheets</span><span id="updatedAt">กำลังเชื่อมต่อข้อมูล...</span></div>
+</main>
+<script>
+const GOOGLE_SHEETS_WRITE_URL = "https://script.google.com/macros/s/AKfycbx_Fz3v_DQZzFW3YhoBMslINSphkxxPXoEu-JMX9jBreRt8fIRiqBOULKrygyYnLAW0Cw/exec";
+
+let allTickets = [], charts = {};
+const palette = {blue:'#3478f6',teal:'#16a6a0',red:'#e65362',amber:'#e7a33e',purple:'#8a72d6',green:'#25a875',gray:'#94a3b8'};
+const $ = id => document.getElementById(id);
+
+function parseRows(rows){
+  return rows.filter(r=>r.Ticket_ID).map(r=>({
+    ...r,
+    Created_Date: String(r.Created_Date||'').slice(0,10),
+    Resolved_Date: String(r.Resolved_Date||'').slice(0,10),
+    Resolution_Days: (r.Resolution_Days===''||r.Resolution_Days==null)?null:Number(r.Resolution_Days)
+  }));
+}
+
+function init(){
+  $('sourcePill').textContent='แหล่งข้อมูล: Google Sheets';
+  $('updatedAt').textContent='กำลังโหลดข้อมูลจาก Google Sheets...';
+
+  fetch(GOOGLE_SHEETS_WRITE_URL)
+    .then(response => {
+      if(!response.ok) throw new Error('HTTP ' + response.status);
+      return response.json();
+    })
+    .then(data => {
+      const rows = parseRows(data);
+      if(!rows.length){showLoadError('ไม่พบ Ticket ในชีต หรือหัวคอลัมน์ไม่ตรงกับที่ Dashboard ต้องการ');return;}
+      allTickets = rows;
+      const dates = rows.map(t=>t.Created_Date).filter(Boolean).sort();
+      if(dates.length){$('dateFrom').value = dates[0]; $('dateTo').value = dates[dates.length-1];}
+      $('updatedAt').textContent = 'โหลดข้อมูลล่าสุดเมื่อ ' + new Date().toLocaleString('th-TH');
+      setup();
+    })
+    .catch(err => {
+      showLoadError('โหลดข้อมูลจาก Google Sheets ไม่สำเร็จ: ' + err.message);
+    });
+}
+
+function showLoadError(message){
+  $('updatedAt').textContent = message;
+  $('ticketRows').innerHTML = '<tr><td colspan="10" style="text-align:center;color:#c63845;padding:24px">' + esc(message) + '</td></tr>';
+  $('tableCount').textContent = 'ไม่มีข้อมูล';
+  ['kTotal','kOpen','kClosed','kMttr'].forEach(id=>$(id).textContent='—');
+  showToast(message);
+}
+
+function setup(){
+ const sites=[...new Set(allTickets.map(t=>t.Site_Code))].sort();
+ sites.forEach(s=>{let o=document.createElement('option');o.value=s;o.textContent=s+' — '+(allTickets.find(t=>t.Site_Code===s)?.Site_Name||s);$('siteFilter').appendChild(o)});
+ $('applyBtn').onclick = render;
+ $('resetBtn').onclick = () => {
+   $('siteFilter').value = ''; $('priorityFilter').value = ''; $('statusFilter').value = ''; 
+   const ds = allTickets.map(t=>t.Created_Date).filter(Boolean).sort();
+   $('dateFrom').value = ds[0] || ''; $('dateTo').value = ds[ds.length-1] || ''; 
+   $('searchInput').value = ''; render();
+ };
+ $('searchInput').addEventListener('input', renderTable);
+ $('exportBtn').onclick = exportCsv;
+ render();
+}
+
+function filtered(){
+ const site = $('siteFilter').value, pri = $('priorityFilter').value, st = $('statusFilter').value, from = $('dateFrom').value, to = $('dateTo').value;
+ return allTickets.filter(t => (!site || t.Site_Code === site) && (!pri || t.Priority === pri) && (!st || t.Status === st) && (!from || t.Created_Date >= from) && (!to || t.Created_Date <= to));
+}
+
+function countBy(arr,key,values){return values.map(v=>arr.filter(t=>t[key]===v).length)}
+function groupCount(arr,fn){const m={};arr.forEach(t=>{const k=fn(t);m[k]=(m[k]||0)+1});return m}
+function chart(id,type,data,options={}){if(charts[id])charts[id].destroy();charts[id]=new Chart($(id),{type,data,options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{usePointStyle:true,boxWidth:8,font:{size:11}}}},scales:type==='doughnut'?{}:{x:{grid:{display:false},ticks:{font:{size:10}}},y:{beginAtZero:true,grid:{color:'#edf1f6'},ticks:{precision:0,font:{size:10}}}},...options}})}
+
+function render(){
+ const a = filtered(), open = a.filter(t=>['Open','In Progress'].includes(t.Status)), closed = a.filter(t=>['Resolved','Closed'].includes(t.Status)), done = closed.length;
+ $('kTotal').textContent = a.length.toLocaleString('en-US');
+ $('kOpen').textContent = open.length.toLocaleString('en-US');
+ $('kClosed').textContent = done.toLocaleString('en-US');
+ $('kClosedFoot').textContent = 'อัตราปิดงาน ' + (a.length ? (done/a.length*100).toFixed(1) : '0.0') + '%';
+ const mttr = closed.filter(t=>t.Resolution_Days!==null&&t.Resolution_Days!==undefined&&!Number.isNaN(t.Resolution_Days));
+ $('kMttr').textContent = mttr.length ? (mttr.reduce((s,t)=>s+t.Resolution_Days,0)/mttr.length).toFixed(1) : '—';
+ $('kOpenFoot').textContent = 'Critical ค้าง ' + open.filter(t=>t.Priority==='Critical').length + ' รายการ';
+ 
+ const months = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+ const monthly = {};
+ a.forEach(t => {const m = t.Created_Date.slice(0,7); if(m){if(!monthly[m]) monthly[m]={new:0,closed:0}; monthly[m].new++;}});
+ closed.forEach(t => {if(t.Resolved_Date){const m = t.Resolved_Date.slice(0,7); if(m){if(!monthly[m]) monthly[m]={new:0,closed:0}; monthly[m].closed++;}}});
+ const keys = Object.keys(monthly).sort();
+ chart('trendChart','line',{labels:keys.map(k=>{let arr=k.split('-');return months[Number(arr[1])-1]+' '+arr[0].slice(2)}),datasets:[{label:'สร้างใหม่',data:keys.map(k=>monthly[k].new),borderColor:palette.blue,backgroundColor:palette.blue+'22',fill:true,tension:.3},{label:'ปิดงาน',data:keys.map(k=>monthly[k].closed),borderColor:palette.teal,backgroundColor:palette.teal+'18',fill:true,tension:.3}]});
+ 
+ const sts = ['Open','In Progress','Resolved','Closed'];
+ chart('statusChart','doughnut',{labels:sts,datasets:[{data:countBy(a,'Status',sts),backgroundColor:[palette.red,palette.amber,palette.blue,palette.green],borderWidth:0}]},{cutout:'66%',plugins:{legend:{position:'bottom',labels:{usePointStyle:true,padding:15,font:{size:10}}}}});
+ 
+ const ps = ['Critical','High','Medium','Low'];
+ chart('priorityChart','bar',{labels:ps,datasets:[{label:'Tickets',data:countBy(a,'Priority',ps),backgroundColor:[palette.red,palette.amber,palette.blue,palette.gray],borderRadius:5,maxBarThickness:42}]},{plugins:{legend:{display:false}}});
+ 
+ const cats = Object.entries(groupCount(a,t=>t.Category)).sort((x,y)=>y[1]-x[1]).slice(0,7);
+ chart('categoryChart','bar',{labels:cats.map(x=>x[0]),datasets:[{label:'Tickets',data:cats.map(x=>x[1]),backgroundColor:palette.purple,borderRadius:4,maxBarThickness:26}]},{indexAxis:'y',plugins:{legend:{display:false}}});
+ 
+ const siteNames = [...new Set(allTickets.map(t=>t.Site_Code))].sort();
+ chart('siteChart','bar',{labels:siteNames,datasets:[{label:'Ticket ทั้งหมด',data:siteNames.map(s=>a.filter(t=>t.Site_Code===s).length),backgroundColor:'#64748b',borderRadius:4},{label:'Closed',data:siteNames.map(s=>a.filter(t=>t.Site_Code===s&&t.Status==='Closed').length),backgroundColor:palette.teal,borderRadius:4},{label:'In Progress',data:siteNames.map(s=>a.filter(t=>t.Site_Code===s&&t.Status==='In Progress').length),backgroundColor:palette.amber,borderRadius:4},{label:'Open',data:siteNames.map(s=>a.filter(t=>t.Site_Code===s&&t.Status==='Open').length),backgroundColor:palette.red,borderRadius:4}]},{plugins:{legend:{position:'bottom',labels:{padding:15}}}});
+ 
+ const res = ps.map(p=>{const z = closed.filter(t=>t.Priority===p&&t.Resolution_Days!==null&&t.Resolution_Days!==undefined);return z.length ? z.reduce((s,t)=>s+t.Resolution_Days,0)/z.length : 0;});
+ chart('resolutionChart','bar',{labels:ps,datasets:[{label:'วันเฉลี่ย',data:res.map(v=>Number(v.toFixed(1))),backgroundColor:[palette.red,palette.amber,palette.blue,palette.gray],borderRadius:5,maxBarThickness:40}]},{plugins:{legend:{display:false}}});
+ 
+ $('periodPill').textContent = ($('dateFrom').value || 'เริ่มต้น') + ' ถึง ' + ($('dateTo').value || 'ปัจจุบัน');
+ $('tableCount').textContent = 'แสดง ' + a.length + ' รายการ';
+ renderTable();
+}
+
+function renderTable(){
+ const a = filtered(), q = $('searchInput').value.toLowerCase().trim();
+ const shown = a.filter(t => [t.Ticket_ID, t.Site_Code, t.Site_Name, t.Category, t.Subcategory, t.Defect_Description, t.Owner_Team].join(' ').toLowerCase().includes(q)).sort((x,y)=>y.Created_Date.localeCompare(x.Created_Date));
+ 
+ $('ticketRows').innerHTML = shown.slice(0,250).map(t => {
+   const alreadyClosed = t.Status === 'Closed';
+   const resDays = (t.Resolution_Days !== null && t.Resolution_Days !== undefined) ? t.Resolution_Days : '—';
+   const statusClass = 's-' + String(t.Status).replace(' ', '-');
+   const priClass = 'p-' + t.Priority;
+   
+   let actionHtml = '';
+   if(alreadyClosed) {
+     actionHtml = '<span class="action-btn action-done">✓ Closed</span>';
+   } else {
+     actionHtml = '<button class="action-btn" onclick="closeTicket(\'' + esc(t.Ticket_ID) + '\')">✓ Close ticket</button>';
+   }
+   
+   return '<tr>' +
+     '<td><b>' + esc(t.Ticket_ID) + '</b></td>' +
+     '<td>' + esc(t.Created_Date) + '</td>' +
+     '<td>' + esc(t.Site_Code) + '</td>' +
+     '<td>' + esc(t.Category) + '</td>' +
+     '<td>' + esc(t.Defect_Description) + '</td>' +
+     '<td><span class="priority ' + esc(priClass) + '">' + esc(t.Priority) + '</span></td>' +
+     '<td><span class="status ' + esc(statusClass) + '">' + esc(t.Status) + '</span></td>' +
+     '<td>' + esc(t.Owner_Team) + '</td>' +
+     '<td>' + resDays + '</td>' +
+     '<td>' + actionHtml + '</td>' +
+   '</tr>';
+ }).join('');
+ 
+ $('tableCount').textContent = 'แสดง ' + Math.min(shown.length, 250) + ' จาก ' + shown.length + ' รายการ';
+}
+
+async function closeTicket(ticketId){
+ const ticket = allTickets.find(t => t.Ticket_ID === ticketId);
+ if(!ticket || ticket.Status === 'Closed') return;
+ if(!confirm('ยืนยันปิด Ticket ' + ticketId + ' ใช่หรือไม่?')) return;
+ 
+ const today = new Date();
+ const iso = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
+ const created = new Date(ticket.Created_Date + 'T00:00:00');
+ const resolved = new Date(iso + 'T00:00:00');
+ const days = Math.max(0, Math.round((resolved - created) / 86400000));
+ 
+ try {
+   const response = await fetch(GOOGLE_SHEETS_WRITE_URL, {
+     method: 'POST',
+     headers: {'Content-Type': 'text/plain;charset=utf-8'},
+     body: JSON.stringify({action: 'close', ticketId: ticketId, status: 'Closed', resolvedDate: iso, resolutionDays: days})
+   });
+   if(!response.ok) throw new Error('HTTP ' + response.status);
+   const result = await response.json();
+   if(result.success === false) throw new Error(result.message || 'Write-back failed');
+ } catch(err) {
+   showToast('อัปเดต Google Sheets ไม่สำเร็จ: ' + err.message);
+   return;
+ }
+ 
+ ticket.Status = 'Closed';
+ ticket.Resolved_Date = iso;
+ ticket.Resolution_Days = days;
+ render();
+ $('updatedAt').textContent = 'อัปเดตสถานะ ' + ticketId + ' เมื่อ ' + new Date().toLocaleString('th-TH');
+ showToast('ส่งคำสั่งอัปเดต ' + ticketId + ' เป็น Closed ไปยัง Google Sheets แล้ว');
+}
+
+function showToast(message){
+ const el = $('toast');
+ el.textContent = message;
+ el.classList.add('show');
+ clearTimeout(window.__toastTimer);
+ window.__toastTimer = setTimeout(()=>el.classList.remove('show'), 5000);
+}
+
+function esc(s){
+ return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','gt;':'>','\"':'&quot;',"'":'&#39;'}[c] || c));
+}
+
+function exportCsv(){
+ const a = filtered();
+ const csvHeader = Object.keys(a[0] || {}).join(',');
+ const csvRows = a.map(row => Object.values(row).map(v => '"' + String(v ?? '').replace(/"/g, '""') + '"').join(','));
+ const csv = [csvHeader, ...csvRows].join('\n');
+ const blob = new Blob(['\ufeff' + csv], {type: 'text/csv;charset=utf-8;'});
+ const url = URL.createObjectURL(blob);
+ const link = document.createElement('a');
+ link.href = url;
+ link.download = 'electrical_defect_tickets_filtered.csv';
+ link.click();
+ URL.revokeObjectURL(url);
+}
+
+init();
+</script>
+</body>
+</html>
